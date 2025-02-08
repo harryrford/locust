@@ -1,0 +1,2021 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "xAI's REST API",
+    "description": "REST API for xAI compatible with other providers.",
+    "license": { "name": "" },
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/v1/api-key": {
+      "get": {
+        "tags": ["crate::v1"],
+        "summary": "Get information about an API key, including name, status, permissions and users who created or modified this key.",
+        "operationId": "handle_get_api_key_info_request",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiKey" },
+                "example": {
+                  "redacted_api_key": "xai-...b14o",
+                  "user_id": "59fbe5f2-040b-46d5-8325-868bb8f23eb2",
+                  "name": "My API Key",
+                  "create_time": "2024-01-01T12:55:18.139305Z",
+                  "modify_time": "2024-08-28T17:20:12.343321Z",
+                  "modified_by": "3d38b4dc-4eb7-4785-ae26-c3fa8997ffc7",
+                  "team_id": "5ea6f6bd-7815-4b8a-9135-28b2d7ba6722",
+                  "acls": ["api-key:model:*", "api-key:endpoint:*"],
+                  "api_key_id": "ae1e1841-4326-4b36-a8a9-8a1a7237db11",
+                  "team_blocked": false,
+                  "api_key_blocked": false,
+                  "api_key_disabled": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request. The request is invalid or an invalid API key is provided."
+          }
+        },
+        "security": [{ "bearerAuth": [] }]
+      }
+    },
+    "/v1/chat/completions": {
+      "post": {
+        "tags": ["crate::v1"],
+        "summary": "Create a chat response from text/image chat prompts. This is the endpoint for making requests to chat and image understanding models.",
+        "operationId": "handle_generic_completion_request",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ChatRequest" },
+              "example": "{\n          \"messages\": [\n            {\n              \"role\": \"system\",\n              \"content\": \"You're an assistant\"\n            },\n            {\n              \"role\": \"user\",\n              \"content\": \"Hi\"\n            }\n          ],\n          \"model\": \"grok-2-latest\"\n        }"
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ChatResponse" },
+                "example": {
+                  "id": "c6f2d009-77ca-40d9-9de5-6d19716e1b4d",
+                  "object": "chat.completion",
+                  "created": 1728646283,
+                  "model": "grok-2-latest",
+                  "choices": [
+                    {
+                      "index": 0,
+                      "message": {
+                        "role": "assistant",
+                        "content": "Hello! How can I assist you today?",
+                        "refusal": null
+                      },
+                      "finish_reason": "stop"
+                    }
+                  ],
+                  "usage": {
+                    "prompt_tokens": 15,
+                    "completion_tokens": 10,
+                    "total_tokens": 25,
+                    "prompt_tokens_details": {
+                      "text_tokens": 15,
+                      "audio_tokens": 0,
+                      "image_tokens": 0,
+                      "cached_tokens": 0
+                    }
+                  },
+                  "system_fingerprint": "fp_9877325691"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request. The request is invalid or an invalid API key is provided."
+          },
+          "422": {
+            "description": "Unprocessable Entity. There are missing fields in the request body."
+          }
+        },
+        "security": [{ "bearerAuth": [] }]
+      }
+    },
+    "/v1/complete": {
+      "post": {
+        "tags": ["crate::v1"],
+        "summary": "(Legacy) Create a text completion response. This endpoint is compatible with the Anthropic API.",
+        "operationId": "handle_generic_complete_request",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CompleteRequest" },
+              "example": "{\n          \"model\": \"grok-2-latest\",\n          \"max_tokens_to_sample\": 8,\n          \"temperature\": 0.1,\n          \"prompt\": \"\\n\\nHuman: Hello, how are you?\\n\\nAssistant:\"\n        }"
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CompleteResponse" },
+                "example": {
+                  "type": "completion",
+                  "id": "8d3e45c6-f882-4d40-bb4a-54c6af166e18",
+                  "completion": "Hello there! I'm Grok",
+                  "stop_reason": "max_tokens",
+                  "model": "grok-2-latest"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request. The request is invalid or an invalid API key is provided."
+          },
+          "422": {
+            "description": "Unprocessable Entity. There are missing fields in the request body."
+          }
+        },
+        "security": [{ "bearerAuth": [] }]
+      }
+    },
+    "/v1/completions": {
+      "post": {
+        "tags": ["crate::v1"],
+        "summary": "(Legacy) Create a text completion response for a given prompt. Replaced by /v1/chat/completions",
+        "operationId": "handle_sample_request",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/SampleRequest" },
+              "example": "{\n          \"prompt\": \"1, 2, 3, 4, \",\n          \"model\": \"grok-2-latest\",\n          \"max_tokens\": 3\n        }"
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SampleResponse" },
+                "example": {
+                  "id": "3a34a6a3-82b2-46d9-874d-99dbca084813",
+                  "object": "text_completion",
+                  "created": 1728652460,
+                  "model": "grok-2-latest",
+                  "choices": [{ "index": 0, "text": "5, ", "finish_reason": "length" }],
+                  "usage": { "prompt_tokens": 12, "completion_tokens": 3, "total_tokens": 15 },
+                  "system_fingerprint": "fp_8933231290"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request. The request is invalid or an invalid API key is provided."
+          },
+          "422": {
+            "description": "Unprocessable Entity. There are missing fields in the request body."
+          }
+        },
+        "security": [{ "bearerAuth": [] }]
+      }
+    },
+    "/v1/embedding-models": {
+      "get": {
+        "tags": ["crate::v1"],
+        "summary": "List all embedding models available to the authenticating API key with full information. Additional information compared to /v1/models includes modalities, pricing, fingerprint and alias(es).",
+        "operationId": "handle_embedding_models_list_request",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ListEmbeddingModelsResponse" },
+                "example": {
+                  "models": [
+                    {
+                      "id": "v1",
+                      "fingerprint": "fp_df37966059",
+                      "created": 1725148800,
+                      "object": "model",
+                      "owned_by": "xai",
+                      "version": "0.1.0",
+                      "input_modalities": ["text"],
+                      "prompt_text_token_price": 100,
+                      "prompt_image_token_price": 0,
+                      "aliases": []
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request. The request is invalid or an invalid API key is provided."
+          }
+        },
+        "security": [{ "bearerAuth": [] }]
+      }
+    },
+    "/v1/embedding-models/{model_id}": {
+      "get": {
+        "tags": ["crate::v1"],
+        "summary": "Get full information about an embedding model with its model_id.",
+        "operationId": "handle_embedding_model_get_request",
+        "parameters": [
+          {
+            "name": "model_id",
+            "in": "path",
+            "description": "ID of the model to get.",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/EmbeddingModel" },
+                "example": {
+                  "id": "v1",
+                  "created": 1725148800,
+                  "object": "model",
+                  "owned_by": "xai",
+                  "version": "0.1.0",
+                  "input_modalities": ["text"],
+                  "prompt_text_token_price": 10,
+                  "prompt_image_token_price": 0,
+                  "aliases": []
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request. The request is invalid or an invalid API key is provided."
+          },
+          "404": { "description": "Model not found" }
+        },
+        "security": [{ "bearerAuth": [] }]
+      }
+    },
+    "/v1/embeddings": {
+      "post": {
+        "tags": ["crate::v1"],
+        "summary": "Create an embedding vector representation corresponding to the input text. This is the endpoint for making requests to embedding models.",
+        "operationId": "handle_embedding_request",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/EmbeddingRequest" },
+              "example": "{\n            \"input\": [\"This is an example content to embed...\"],\n            \"model\": \"v1\",\n            \"encoding_format\": \"float\"\n        }"
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/EmbeddingResponse" },
+                "example": {
+                  "object": "list",
+                  "model": "v1",
+                  "data": [
+                    {
+                      "index": 0,
+                      "embedding": [0.01567895, 0.063257694, 0.045925662],
+                      "object": "embedding"
+                    }
+                  ],
+                  "usage": { "prompt_tokens": 1, "total_tokens": 1 }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request. The request is invalid or an invalid API key is provided."
+          },
+          "422": {
+            "description": "Unprocessable Entity. There are missing fields in the request body."
+          }
+        },
+        "security": [{ "bearerAuth": [] }]
+      }
+    },
+    "/v1/language-models": {
+      "get": {
+        "tags": ["crate::v1"],
+        "summary": "List all chat and image understanding models available to the authenticating API key with full information. Additional information compared to /v1/models includes modalities, pricing, fingerprint and alias(es).",
+        "operationId": "handle_language_models_list_request",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ListLanguageModelsResponse" },
+                "example": {
+                  "models": [
+                    {
+                      "id": "grok-2-1212",
+                      "fingerprint": "fp_1a5ab39b2d",
+                      "created": 1733961600,
+                      "object": "model",
+                      "owned_by": "xai",
+                      "version": "1.0.0",
+                      "input_modalities": ["text"],
+                      "output_modalities": ["text"],
+                      "prompt_text_token_price": 20000,
+                      "prompt_image_token_price": 0,
+                      "completion_text_token_price": 100000,
+                      "aliases": ["grok-2", "grok-2-latest"]
+                    },
+                    {
+                      "id": "grok-2-vision-1212",
+                      "fingerprint": "fp_daba7546e5",
+                      "created": 1733961600,
+                      "object": "model",
+                      "owned_by": "xai",
+                      "version": "0.1.0",
+                      "input_modalities": ["text", "image"],
+                      "output_modalities": ["text"],
+                      "prompt_text_token_price": 20000,
+                      "prompt_image_token_price": 20000,
+                      "completion_text_token_price": 100000,
+                      "aliases": []
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request. The request is invalid or an invalid API key is provided."
+          }
+        },
+        "security": [{ "bearerAuth": [] }]
+      }
+    },
+    "/v1/language-models/{model_id}": {
+      "get": {
+        "tags": ["crate::v1"],
+        "summary": "Get full information about a chat or image understanding model with its model_id.",
+        "operationId": "handle_language_model_get_request",
+        "parameters": [
+          {
+            "name": "model_id",
+            "in": "path",
+            "description": "ID of the model to get.",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/LanguageModel" },
+                "example": {
+                  "id": "grok-2-latest",
+                  "created": 1726444800,
+                  "object": "model",
+                  "owned_by": "xai",
+                  "version": "1.0.0",
+                  "input_modalities": ["text"],
+                  "output_modalities": ["text"],
+                  "prompt_text_token_price": 20000,
+                  "prompt_image_token_price": 0,
+                  "completion_text_token_price": 100000,
+                  "aliases": ["grok-2", "grok-2-latest"]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request. The request is invalid or an invalid API key is provided."
+          },
+          "404": { "description": "Model not found" }
+        },
+        "security": [{ "bearerAuth": [] }]
+      }
+    },
+    "/v1/messages": {
+      "post": {
+        "tags": ["crate::v1"],
+        "summary": "Create a messages response. This endpoint is compatible with the Anthropic API.",
+        "operationId": "handle_generic_messages_request",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/MessageRequest" },
+              "example": "{\n          \"model\": \"grok-2-latest\",\n          \"max_tokens\": 32,\n          \"messages\": [\n            {\"role\": \"user\", \"content\": \"Hello, world\"}\n          ]\n        }"
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/MessageResponse" },
+                "example": {
+                  "id": "107baefc-993f-4632-b504-3f0c90d089aa",
+                  "type": "message",
+                  "role": "assistant",
+                  "content": [{ "type": "text", "text": "Hello! How can I assist you today?" }],
+                  "model": "grok-2-latest",
+                  "stop_reason": "end_turn",
+                  "stop_sequence": null,
+                  "usage": {
+                    "input_tokens": 9,
+                    "cache_creation_input_tokens": 0,
+                    "cache_read_input_tokens": 0,
+                    "output_tokens": 10
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request. The request is invalid or an invalid API key is provided."
+          },
+          "422": {
+            "description": "Unprocessable Entity. There are missing fields in the request body."
+          }
+        },
+        "security": [{ "bearerAuth": [] }]
+      }
+    },
+    "/v1/models": {
+      "get": {
+        "tags": ["crate::v1"],
+        "summary": "List all models available to the authenticating API key with minimalized information, including model names (ID), creation times, etc.",
+        "operationId": "handle_models_list_request",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ListModelsResponse" },
+                "example": {
+                  "data": [
+                    {
+                      "id": "grok-2-1212",
+                      "created": 1733961600,
+                      "object": "model",
+                      "owned_by": "xai"
+                    },
+                    {
+                      "id": "grok-2-vision-1212",
+                      "created": 1733961600,
+                      "object": "model",
+                      "owned_by": "xai"
+                    }
+                  ],
+                  "object": "list"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request. The request is invalid or an invalid API key is provided."
+          }
+        },
+        "security": [{ "bearerAuth": [] }]
+      }
+    },
+    "/v1/models/{model_id}": {
+      "get": {
+        "tags": ["crate::v1"],
+        "summary": "Get minimalized information about a model with its model_id.",
+        "operationId": "handle_model_get_request",
+        "parameters": [
+          {
+            "name": "model_id",
+            "in": "path",
+            "description": "ID of the model to get.",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Model" },
+                "example": {
+                  "id": "grok-2-latest",
+                  "created": 1726444800,
+                  "object": "model",
+                  "owned_by": "xai"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request. The request is invalid or an invalid API key is provided."
+          },
+          "404": { "description": "Model not found" }
+        },
+        "security": [{ "bearerAuth": [] }]
+      }
+    },
+    "/v1/tokenize-text": {
+      "post": {
+        "tags": ["crate::v1"],
+        "summary": "Tokenize text with the specified model",
+        "operationId": "handle_tokenize_text_request",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/TokenizeRequest" },
+              "example": "{\n          \"text\": \"Hello world!\",\n          \"model\": \"grok-2-latest\"\n        }"
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/TokenizeResponse" },
+                "example": {
+                  "token_ids": [
+                    {
+                      "token_id": 13902,
+                      "string_token": "Hello",
+                      "token_bytes": [72, 101, 108, 108, 111]
+                    },
+                    {
+                      "token_id": 1749,
+                      "string_token": " world",
+                      "token_bytes": [32, 119, 111, 114, 108, 100]
+                    },
+                    { "token_id": 161, "string_token": "!", "token_bytes": [33] }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request. The request is invalid or an invalid API key is provided."
+          }
+        },
+        "security": [{ "bearerAuth": [] }]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ApiKey": {
+        "type": "object",
+        "required": [
+          "redacted_api_key",
+          "user_id",
+          "name",
+          "create_time",
+          "modify_time",
+          "modified_by",
+          "team_id",
+          "acls",
+          "api_key_id",
+          "team_blocked",
+          "api_key_blocked",
+          "api_key_disabled"
+        ],
+        "properties": {
+          "acls": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "A list of ACLs authorized with the API key."
+          },
+          "api_key_blocked": {
+            "type": "boolean",
+            "description": "Indicates whether the API key is blocked."
+          },
+          "api_key_disabled": {
+            "type": "boolean",
+            "description": "Indicates whether the API key is disabled."
+          },
+          "api_key_id": { "type": "string", "description": "ID of the API key." },
+          "create_time": {
+            "type": "string",
+            "description": "Creation time of the API key in Unix timestamp."
+          },
+          "modified_by": {
+            "type": "string",
+            "description": "User ID of the user who last modified the API key."
+          },
+          "modify_time": {
+            "type": "string",
+            "description": "Last modification time of the API key in Unix timestamp."
+          },
+          "name": { "type": "string", "description": "The name of the API key specified by user." },
+          "redacted_api_key": { "type": "string", "description": "The redacted API key." },
+          "team_blocked": {
+            "type": "boolean",
+            "description": "Indicates whether the team that owns the API key."
+          },
+          "team_id": {
+            "type": "string",
+            "description": "The team ID of the team that owns the API key."
+          },
+          "user_id": { "type": "string", "description": "User ID the API key belongs to." }
+        }
+      },
+      "ChatRequest": {
+        "type": "object",
+        "required": ["model", "messages"],
+        "properties": {
+          "deferred": {
+            "type": ["boolean", "null"],
+            "description": "If set, the request returns a request id."
+          },
+          "frequency_penalty": {
+            "type": ["number", "null"],
+            "format": "float",
+            "description": "Number between -2.0 and 2.0. Positive values penalize new tokens based on their existing frequency in the text so far, decreasing the model's likelihood to repeat the same line verbatim.",
+            "default": 0,
+            "example": 0.5,
+            "maximum": 2,
+            "minimum": -2
+          },
+          "logit_bias": {
+            "type": ["object", "null"],
+            "description": "A JSON object that maps tokens (specified by their token ID in the tokenizer) to an associated bias value from -100 to 100. Mathematically, the bias is added to the logits generated by the model prior to sampling. The exact effect will vary per model, but values between -1 and 1 should decrease or increase likelihood of selection; values like -100 or 100 should result in a ban or exclusive selection of the relevant token.",
+            "additionalProperties": { "type": "number", "format": "float" },
+            "propertyNames": { "type": "integer", "format": "int32" }
+          },
+          "logprobs": {
+            "type": ["boolean", "null"],
+            "description": "Whether to return log probabilities of the output tokens or not. If true, returns the log probabilities of each output token returned in the content of message.",
+            "default": false
+          },
+          "max_tokens": {
+            "type": ["integer", "null"],
+            "format": "int32",
+            "description": "The maximum number of tokens that can be generated in the chat completion. This value can be used to control costs for text generated via API. The default value will be 16,384 if not specified.",
+            "default": 16384,
+            "example": 8192
+          },
+          "messages": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Message" },
+            "description": "A list of messages that make up the the chat conversation. Different models support different message types, such as image and text."
+          },
+          "model": {
+            "type": "string",
+            "description": "Model name for the model to use.",
+            "example": "grok-2-latest"
+          },
+          "n": {
+            "type": ["integer", "null"],
+            "format": "int32",
+            "description": "How many chat completion choices to generate for each input message. Note that you will be charged based on the number of generated tokens across all of the choices. Keep n as 1 to minimize costs.",
+            "default": 1,
+            "example": 1,
+            "minimum": 1
+          },
+          "presence_penalty": {
+            "type": ["number", "null"],
+            "format": "float",
+            "description": "Number between -2.0 and 2.0. Positive values penalize new tokens based on whether they appear in the text so far, increasing the model's likelihood to talk about new topics.",
+            "default": 0,
+            "example": 0.1,
+            "maximum": 2,
+            "minimum": -2
+          },
+          "response_format": {
+            "oneOf": [
+              { "type": "null" },
+              {
+                "$ref": "#/components/schemas/ResponseFormat",
+                "description": "An object specifying the format that the model must output. Specify `{ \"type\": \"json_object\" }` for JSON output, or `{ \"type\": \"json_schema\", \"json_schema\": {...} }` for structured outputs."
+              }
+            ]
+          },
+          "seed": {
+            "type": ["integer", "null"],
+            "format": "int32",
+            "description": "If specified, our system will make a best effort to sample deterministically, such that repeated requests with the same `seed` and parameters should return the same result. Determinism is not guaranteed, and you should refer to the `system_fingerprint` response parameter to monitor changes in the backend."
+          },
+          "stop": {
+            "type": ["array", "null"],
+            "items": { "type": "string" },
+            "description": "Up to 4 sequences where the API will stop generating further tokens."
+          },
+          "stream": {
+            "type": ["boolean", "null"],
+            "description": "If set, partial message deltas will be sent. Tokens will be sent as data-only server-sent events as they become available, with the stream terminated by a `data: [DONE]` message.",
+            "default": false,
+            "example": true
+          },
+          "stream_options": {
+            "oneOf": [
+              { "type": "null" },
+              {
+                "$ref": "#/components/schemas/StreamOptions",
+                "description": "Options for streaming response. Only set this when you set `stream: true`."
+              }
+            ]
+          },
+          "temperature": {
+            "type": ["number", "null"],
+            "format": "float",
+            "description": "What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic.",
+            "default": 1,
+            "example": 0.2,
+            "maximum": 2,
+            "minimum": 0
+          },
+          "tool_choice": {
+            "oneOf": [
+              { "type": "null" },
+              {
+                "$ref": "#/components/schemas/ToolChoice",
+                "description": "Controls which (if any) tool is called by the model. `none` means the model will not call any tool and instead generates a message. auto means the model can pick between generating a message or calling one or more tools. required means the model must call one or more tools. Specifying a particular tool via `{\"type\": \"function\", \"function\": {\"name\": \"my_function\"}}` forces the model to call that tool. `none` is the default when no tools are present. `auto` is the default if tools are present."
+              }
+            ]
+          },
+          "tools": {
+            "type": ["array", "null"],
+            "items": { "$ref": "#/components/schemas/Tool" },
+            "description": "A list of tools the model may call. Currently, only functions are supported as a tool. Use this to provide a list of functions the model may generate JSON inputs for. A max of 128 functions are supported.",
+            "maxItems": 128
+          },
+          "top_logprobs": {
+            "type": ["integer", "null"],
+            "format": "int32",
+            "description": "An integer between 0 and 20 specifying the number of most likely tokens to return at each token position, each with an associated log probability. logprobs must be set to true if this parameter is used.",
+            "maximum": 20,
+            "minimum": 0
+          },
+          "top_p": {
+            "type": ["number", "null"],
+            "format": "float",
+            "description": "An alternative to sampling with `temperature`, called nucleus sampling, where the model considers the results of the tokens with `top_p` probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered. It is generally recommended to alter this or `temperature` but not both.",
+            "default": 1,
+            "maximum": 2,
+            "exclusiveMinimum": 0
+          },
+          "user": {
+            "type": ["string", "null"],
+            "description": "A unique identifier representing your end-user, which can help xAI to monitor and detect abuse."
+          }
+        }
+      },
+      "ChatResponse": {
+        "type": "object",
+        "required": ["id", "object", "created", "model", "choices"],
+        "properties": {
+          "choices": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Choice" },
+            "description": "A list of response choices from the model. The length corresponds to the `n` in request body (default to 1)."
+          },
+          "created": {
+            "type": "integer",
+            "format": "int64",
+            "description": "The chat completion creation time in Unix timestamp."
+          },
+          "id": { "type": "string", "description": "A unique ID for the chat response." },
+          "model": { "type": "string", "description": "Model ID used to create chat completion." },
+          "object": {
+            "type": "string",
+            "description": "The object type, which is always `chat.response`."
+          },
+          "system_fingerprint": {
+            "type": ["string", "null"],
+            "description": "System fingerprint, used to indicate xAI system configuration changes."
+          },
+          "usage": {
+            "oneOf": [
+              { "type": "null" },
+              { "$ref": "#/components/schemas/Usage", "description": "Token usage information" }
+            ]
+          }
+        }
+      },
+      "ChatResponseChunk": {
+        "type": "object",
+        "required": ["id", "object", "created", "model", "choices"],
+        "properties": {
+          "choices": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ChoiceChunk" },
+            "description": "A list of response choices from the model. The length corresponds to the `n` in request body (default to 1)."
+          },
+          "created": {
+            "type": "integer",
+            "format": "int64",
+            "description": "The chat completion creation time in Unix timestamp."
+          },
+          "id": { "type": "string", "description": "A unique ID for the chat response chunk." },
+          "model": {
+            "type": "string",
+            "description": "The model ID used to create chat completion."
+          },
+          "object": {
+            "type": "string",
+            "description": "The object type, which is always `chat.completion.chunk`."
+          },
+          "system_fingerprint": {
+            "type": ["string", "null"],
+            "description": "System fingerprint, used to indicate xAI system configuration changes."
+          },
+          "usage": {
+            "oneOf": [
+              { "type": "null" },
+              { "$ref": "#/components/schemas/Usage", "description": "Token usage information" }
+            ]
+          }
+        }
+      },
+      "Choice": {
+        "type": "object",
+        "required": ["index", "message"],
+        "properties": {
+          "finish_reason": { "type": ["string", "null"], "description": "Finish reason." },
+          "index": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Index of the choice within the response choices, starting from 0."
+          },
+          "logprobs": {
+            "oneOf": [
+              { "type": "null" },
+              {
+                "$ref": "#/components/schemas/LogProbs",
+                "description": "Log probability information for the choice."
+              }
+            ]
+          },
+          "message": {
+            "$ref": "#/components/schemas/ChoiceMessage",
+            "description": "The generated chat completion message."
+          }
+        }
+      },
+      "ChoiceChunk": {
+        "type": "object",
+        "required": ["index", "delta"],
+        "properties": {
+          "delta": { "$ref": "#/components/schemas/Delta" },
+          "finish_reason": { "type": ["string", "null"] },
+          "index": { "type": "integer", "format": "int32" },
+          "logprobs": { "oneOf": [{ "type": "null" }, { "$ref": "#/components/schemas/LogProbs" }] }
+        }
+      },
+      "ChoiceMessage": {
+        "type": "object",
+        "required": ["role"],
+        "properties": {
+          "content": { "type": ["string", "null"], "description": "The content of the message." },
+          "refusal": {
+            "type": ["string", "null"],
+            "description": "The reason given by model if the model is unable to generate a response. null if model is able to generate."
+          },
+          "role": {
+            "type": "string",
+            "description": "The role that the message belongs to, the response from model is always `assistant`."
+          },
+          "tool_calls": {
+            "type": ["array", "null"],
+            "items": { "$ref": "#/components/schemas/ToolCall" },
+            "description": "A list of tool calls asked by model for user to perform."
+          }
+        }
+      },
+      "CompleteRequest": {
+        "type": "object",
+        "required": ["model", "prompt", "max_tokens_to_sample"],
+        "properties": {
+          "max_tokens_to_sample": { "type": "integer", "format": "int32" },
+          "metadata": {
+            "oneOf": [{ "type": "null" }, { "$ref": "#/components/schemas/MessageMetadata" }]
+          },
+          "model": { "type": "string" },
+          "prompt": { "type": "string" },
+          "stop_sequences": { "type": ["array", "null"], "items": { "type": "string" } },
+          "stream": { "type": ["boolean", "null"] },
+          "temperature": { "type": ["number", "null"], "format": "float" },
+          "top_k": { "type": ["integer", "null"], "format": "int32" },
+          "top_p": { "type": ["number", "null"], "format": "float" }
+        }
+      },
+      "CompleteResponse": {
+        "type": "object",
+        "required": ["type", "id", "completion", "model"],
+        "properties": {
+          "completion": { "type": "string" },
+          "id": { "type": "string" },
+          "model": { "type": "string" },
+          "stop_reason": { "type": ["string", "null"] },
+          "type": { "type": "string" }
+        }
+      },
+      "Content": {
+        "oneOf": [
+          { "type": "string" },
+          { "type": "array", "items": { "$ref": "#/components/schemas/ContentPart" } }
+        ]
+      },
+      "ContentPart": {
+        "type": "object",
+        "required": ["type"],
+        "properties": {
+          "detail": { "type": ["string", "null"] },
+          "image_url": {
+            "oneOf": [{ "type": "null" }, { "$ref": "#/components/schemas/ImageUrl" }]
+          },
+          "text": { "type": ["string", "null"] },
+          "text_file": { "type": ["string", "null"] },
+          "type": { "type": "string" }
+        }
+      },
+      "Delta": {
+        "type": "object",
+        "required": ["role"],
+        "properties": {
+          "content": { "type": ["string", "null"] },
+          "role": { "type": "string" },
+          "tool_calls": {
+            "type": ["array", "null"],
+            "items": { "$ref": "#/components/schemas/ToolCall" }
+          }
+        }
+      },
+      "EditImageRequest": {
+        "type": "object",
+        "required": ["prompt", "image"],
+        "properties": {
+          "image": {
+            "$ref": "#/components/schemas/ImageUrl",
+            "description": "Input image to perform edit on."
+          },
+          "mask": { "oneOf": [{ "type": "null" }, { "$ref": "#/components/schemas/ImageUrl" }] },
+          "model": { "type": ["string", "null"], "description": "Model to be used." },
+          "n": {
+            "type": ["integer", "null"],
+            "format": "int32",
+            "description": "Number of image edits to be generated."
+          },
+          "prompt": { "type": "string", "description": "Prompt for image editing." },
+          "response_format": {
+            "type": ["string", "null"],
+            "description": "Response format to return the image in. Can be `url` or `b64_json`. If `b64_json` is specified, the image will be returned as a base64-encoded string instead of a url to the generated image file.",
+            "default": "url"
+          },
+          "size": { "type": ["string", "null"] },
+          "style": { "type": ["string", "null"] },
+          "user": {
+            "type": ["string", "null"],
+            "description": "A unique identifier representing your end-user, which can help xAI to monitor and detect abuse."
+          }
+        }
+      },
+      "Embedding": {
+        "type": "object",
+        "required": ["index", "embedding", "object"],
+        "properties": {
+          "embedding": {
+            "$ref": "#/components/schemas/EmbeddingContent",
+            "description": "Embedding."
+          },
+          "index": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Index of the embedding object in the data list."
+          },
+          "object": {
+            "type": "string",
+            "description": "The object type, which is always `embedding`."
+          }
+        }
+      },
+      "EmbeddingContent": {
+        "oneOf": [
+          { "type": "string" },
+          { "type": "array", "items": { "type": "number", "format": "float" } }
+        ]
+      },
+      "EmbeddingInput": {
+        "oneOf": [
+          {
+            "type": "object",
+            "description": "A strings to be embedded",
+            "required": ["String"],
+            "properties": {
+              "String": { "type": "string", "description": "A strings to be embedded" }
+            }
+          },
+          {
+            "type": "object",
+            "description": "An array of strings to be embedded",
+            "required": ["StringArray"],
+            "properties": {
+              "StringArray": {
+                "type": "array",
+                "items": { "type": "string" },
+                "description": "An array of strings to be embedded"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "description": "A token in integer to be embedded",
+            "required": ["Ints"],
+            "properties": {
+              "Ints": {
+                "type": "array",
+                "items": { "type": "integer", "format": "int32" },
+                "description": "A token in integer to be embedded"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "description": "An array of tokens in integers to be embedded",
+            "required": ["IntsArray"],
+            "properties": {
+              "IntsArray": {
+                "type": "array",
+                "items": { "type": "array", "items": { "type": "integer", "format": "int32" } },
+                "description": "An array of tokens in integers to be embedded"
+              }
+            }
+          }
+        ]
+      },
+      "EmbeddingModel": {
+        "type": "object",
+        "required": [
+          "id",
+          "fingerprint",
+          "created",
+          "object",
+          "owned_by",
+          "version",
+          "input_modalities",
+          "prompt_text_token_price",
+          "prompt_image_token_price",
+          "aliases"
+        ],
+        "properties": {
+          "aliases": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Alias ID(s) of the model that user can use in a request's model field."
+          },
+          "created": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Model creation time in Unix timestamp."
+          },
+          "fingerprint": {
+            "type": "string",
+            "description": "Fingerprint of the xAI system configuration hosting the model."
+          },
+          "id": { "type": "string", "description": "Model ID." },
+          "input_modalities": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "The input modalities supported by the model."
+          },
+          "object": { "type": "string", "description": "Object type, should be model." },
+          "owned_by": { "type": "string", "description": "Owner of the model." },
+          "prompt_image_token_price": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Price of the prompt image token in USD cents per million token."
+          },
+          "prompt_text_token_price": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Price of the prompt text token in USD cents per million token."
+          },
+          "version": { "type": "string", "description": "Version of the model." }
+        }
+      },
+      "EmbeddingRequest": {
+        "type": "object",
+        "required": ["input", "model"],
+        "properties": {
+          "dimensions": {
+            "type": ["integer", "null"],
+            "format": "int32",
+            "description": "The number of dimensions the resulting output embeddings should have."
+          },
+          "encoding_format": {
+            "type": ["string", "null"],
+            "description": "The format to return the embeddings in. Can be either `float` or `base64`."
+          },
+          "input": {
+            "$ref": "#/components/schemas/EmbeddingInput",
+            "description": "Input text to embed, encoded as a string or list of tokens. To embed multiple inputs in a single request, pass a list of strings or list of token lists. The total tokens in the input must not exceed the context window for the model and cannot be an empty string. If the input is a list, the maximum length of the list is 128."
+          },
+          "model": { "type": "string", "description": "ID of the model to use." },
+          "preview": {
+            "type": ["boolean", "null"],
+            "description": "Flag to use the new format of the API."
+          },
+          "user": {
+            "type": ["string", "null"],
+            "description": "A unique identifier representing your end-user, which can help xAI to monitor and detect abuse."
+          }
+        }
+      },
+      "EmbeddingResponse": {
+        "type": "object",
+        "required": ["object", "model", "data"],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Embedding" },
+            "description": "A list of embedding objects."
+          },
+          "model": { "type": "string", "description": "Model ID used to create embedding." },
+          "object": {
+            "type": "string",
+            "description": "The object type of `data` field, which is always `list`."
+          },
+          "usage": {
+            "oneOf": [
+              { "type": "null" },
+              {
+                "$ref": "#/components/schemas/EmbeddingUsage",
+                "description": "Token usage information."
+              }
+            ]
+          }
+        }
+      },
+      "EmbeddingUsage": {
+        "type": "object",
+        "required": ["prompt_tokens", "total_tokens"],
+        "properties": {
+          "prompt_tokens": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Prompt token used."
+          },
+          "total_tokens": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Total token used."
+          }
+        }
+      },
+      "Function": {
+        "type": "object",
+        "required": ["name", "arguments"],
+        "properties": { "arguments": { "type": "string" }, "name": { "type": "string" } }
+      },
+      "FunctionCall": {
+        "type": "object",
+        "required": ["name", "arguments"],
+        "properties": { "arguments": { "type": "string" }, "name": { "type": "string" } }
+      },
+      "FunctionChoice": {
+        "type": "object",
+        "required": ["name"],
+        "properties": { "name": { "type": "string" } }
+      },
+      "FunctionDefinition": {
+        "type": "object",
+        "required": ["name", "parameters"],
+        "properties": {
+          "description": {
+            "type": ["string", "null"],
+            "description": "A description of the function to indicate to the model when to call it."
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the function. If the model calls the function, this name is used in the\nresponse."
+          },
+          "parameters": {
+            "description": "A JSON schema describing the function parameters. The model _should_ follow the schema,\nhowever, this is not enforced at the moment."
+          },
+          "strict": {
+            "type": ["boolean", "null"],
+            "description": "Not supported. Only maintained for compatibility reasons."
+          }
+        }
+      },
+      "GenerateImageRequest": {
+        "type": "object",
+        "required": ["prompt"],
+        "properties": {
+          "model": { "type": ["string", "null"], "description": "Model to be used." },
+          "n": {
+            "type": ["integer", "null"],
+            "format": "int32",
+            "description": "Number of images to be generated",
+            "default": 1,
+            "maximum": 10,
+            "minimum": 1
+          },
+          "prompt": { "type": "string", "description": "Prompt for image generation." },
+          "quality": { "type": ["string", "null"], "description": "Not supported yet." },
+          "response_format": {
+            "type": ["string", "null"],
+            "description": "Response format to return the image in. Can be url or b64_json. If b64_json is specified, the image will be returned as a base64-encoded string instead of a url to the generated image file.",
+            "default": "url"
+          },
+          "size": { "type": ["string", "null"], "description": "Not supported yet." },
+          "style": { "type": ["string", "null"], "description": "Not supported yet." },
+          "user": {
+            "type": ["string", "null"],
+            "description": "A unique identifier representing your end-user, which can help xAI to monitor and detect abuse."
+          }
+        }
+      },
+      "GeneratedImage": {
+        "type": "object",
+        "required": ["revised_prompt"],
+        "properties": {
+          "b64_json": {
+            "type": ["string", "null"],
+            "description": "A base64-encoded string representation of the generated image, if `b64_json` is specified as `response_format` in the request."
+          },
+          "revised_prompt": {
+            "type": "string",
+            "description": "The revised prompt generated by a chat model from the original prompt. This prompt is used in the final image generation."
+          },
+          "url": {
+            "type": ["string", "null"],
+            "description": "A url to the generated image, if `response_format` is not specified or with `url` in the request."
+          }
+        }
+      },
+      "GeneratedImageResponse": {
+        "type": "object",
+        "required": ["data"],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/GeneratedImage" },
+            "description": "A list of generated image objects."
+          }
+        }
+      },
+      "ImageGenerationModel": {
+        "type": "object",
+        "required": [
+          "id",
+          "fingerprint",
+          "max_prompt_length",
+          "created",
+          "object",
+          "owned_by",
+          "version",
+          "image_price",
+          "aliases"
+        ],
+        "properties": {
+          "aliases": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Alias ID(s) of the model that user can use in a request's model field."
+          },
+          "created": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Model creation time in Unix timestamp."
+          },
+          "fingerprint": {
+            "type": "string",
+            "description": "Fingerprint of the xAI system configuration hosting the model."
+          },
+          "id": { "type": "string", "description": "Model ID." },
+          "image_price": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Price of a single image in USD cents."
+          },
+          "max_prompt_length": { "type": "integer", "format": "int64" },
+          "object": {
+            "type": "string",
+            "description": "The object type, which is always `model`."
+          },
+          "owned_by": { "type": "string", "description": "Owner of the model." },
+          "version": { "type": "string", "description": "Version of the model." }
+        }
+      },
+      "ImageUrl": {
+        "type": "object",
+        "required": ["url"],
+        "properties": { "detail": { "type": ["string", "null"] }, "url": { "type": "string" } }
+      },
+      "LanguageModel": {
+        "type": "object",
+        "required": [
+          "id",
+          "fingerprint",
+          "created",
+          "object",
+          "owned_by",
+          "version",
+          "input_modalities",
+          "output_modalities",
+          "prompt_text_token_price",
+          "prompt_image_token_price",
+          "completion_text_token_price",
+          "aliases"
+        ],
+        "properties": {
+          "aliases": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Alias ID(s) of the model that user can use in a request's model field."
+          },
+          "completion_text_token_price": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Price of the completion text token in USD cents per million token."
+          },
+          "created": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Creation time of the model in Unix timestamp."
+          },
+          "fingerprint": {
+            "type": "string",
+            "description": "Fingerprint of the xAI system configuration hosting the model."
+          },
+          "id": { "type": "string", "description": "Model ID." },
+          "input_modalities": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "The input modalities supported by the model."
+          },
+          "object": {
+            "type": "string",
+            "description": "The object type, which is always `model`."
+          },
+          "output_modalities": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "The output modalities supported by the model."
+          },
+          "owned_by": { "type": "string", "description": "Owner of the model." },
+          "prompt_image_token_price": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Price of the prompt image token in USD cents per million token."
+          },
+          "prompt_text_token_price": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Price of the prompt text token in USD cents per million token."
+          },
+          "version": { "type": "string", "description": "Version of the model." }
+        }
+      },
+      "ListEmbeddingModelsResponse": {
+        "type": "object",
+        "required": ["models"],
+        "properties": {
+          "models": { "type": "array", "items": { "$ref": "#/components/schemas/EmbeddingModel" } }
+        }
+      },
+      "ListImageGenerationModelsResponse": {
+        "type": "object",
+        "required": ["models"],
+        "properties": {
+          "models": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ImageGenerationModel" }
+          }
+        }
+      },
+      "ListLanguageModelsResponse": {
+        "type": "object",
+        "required": ["models"],
+        "properties": {
+          "models": { "type": "array", "items": { "$ref": "#/components/schemas/LanguageModel" } }
+        }
+      },
+      "ListModelsResponse": {
+        "type": "object",
+        "required": ["data", "object"],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Model" },
+            "description": "A list of models with with minimalized information."
+          },
+          "object": {
+            "type": "string",
+            "description": "The object type of `data` field, which is always `list`."
+          }
+        }
+      },
+      "LogProbs": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": ["array", "null"],
+            "items": { "$ref": "#/components/schemas/TokenLogProb" }
+          }
+        }
+      },
+      "Message": {
+        "oneOf": [
+          {
+            "type": "object",
+            "required": ["content", "role"],
+            "properties": {
+              "content": { "$ref": "#/components/schemas/Content" },
+              "name": { "type": ["string", "null"] },
+              "role": { "type": "string", "enum": ["system"] }
+            }
+          },
+          {
+            "type": "object",
+            "required": ["content", "role"],
+            "properties": {
+              "content": { "$ref": "#/components/schemas/Content" },
+              "name": { "type": ["string", "null"] },
+              "role": { "type": "string", "enum": ["user"] }
+            }
+          },
+          {
+            "type": "object",
+            "required": ["role"],
+            "properties": {
+              "content": {
+                "oneOf": [{ "type": "null" }, { "$ref": "#/components/schemas/Content" }]
+              },
+              "name": { "type": ["string", "null"] },
+              "role": { "type": "string", "enum": ["assistant"] },
+              "tool_calls": {
+                "type": ["array", "null"],
+                "items": { "$ref": "#/components/schemas/ToolCall" }
+              }
+            }
+          },
+          {
+            "type": "object",
+            "required": ["content", "role"],
+            "properties": {
+              "content": { "$ref": "#/components/schemas/Content" },
+              "role": { "type": "string", "enum": ["tool"] },
+              "tool_call_id": { "type": ["string", "null"] }
+            }
+          },
+          {
+            "type": "object",
+            "required": ["content", "role"],
+            "properties": {
+              "content": { "$ref": "#/components/schemas/Content" },
+              "name": { "type": ["string", "null"] },
+              "role": { "type": "string", "enum": ["function"] }
+            }
+          }
+        ]
+      },
+      "MessageBody": {
+        "type": "object",
+        "required": ["role", "content"],
+        "properties": {
+          "content": { "$ref": "#/components/schemas/MessageContent" },
+          "role": { "type": "string" }
+        }
+      },
+      "MessageContent": {
+        "oneOf": [
+          { "type": "string" },
+          { "type": "array", "items": { "$ref": "#/components/schemas/MessageContentPart" } }
+        ]
+      },
+      "MessageContentPart": {
+        "oneOf": [
+          {
+            "type": "object",
+            "required": ["text", "type"],
+            "properties": {
+              "cacheControl": { "type": ["string", "null"] },
+              "text": { "type": "string" },
+              "type": { "type": "string", "enum": ["text"] }
+            }
+          },
+          {
+            "type": "object",
+            "required": ["source", "type"],
+            "properties": {
+              "cacheControl": { "type": ["string", "null"] },
+              "source": { "$ref": "#/components/schemas/MessageImageContent" },
+              "type": { "type": "string", "enum": ["image"] }
+            }
+          },
+          {
+            "type": "object",
+            "required": ["id", "name", "input", "type"],
+            "properties": {
+              "cacheControl": { "type": ["string", "null"] },
+              "id": { "type": "string" },
+              "input": { "type": "string" },
+              "name": { "type": "string" },
+              "type": { "type": "string", "enum": ["tool_use"] }
+            }
+          },
+          {
+            "type": "object",
+            "required": ["toolUseId", "content", "type"],
+            "properties": {
+              "cacheControl": { "type": ["string", "null"] },
+              "content": { "type": "string" },
+              "isError": { "type": ["boolean", "null"] },
+              "toolUseId": { "type": "string" },
+              "type": { "type": "string", "enum": ["tool_result"] }
+            }
+          }
+        ]
+      },
+      "MessageImageContent": {
+        "type": "object",
+        "required": ["type", "media_type", "data"],
+        "properties": {
+          "data": { "type": "string" },
+          "media_type": { "type": "string" },
+          "type": { "type": "string" }
+        }
+      },
+      "MessageMetadata": {
+        "type": "object",
+        "properties": { "user_id": { "type": ["string", "null"] } }
+      },
+      "MessageRequest": {
+        "type": "object",
+        "required": ["model", "messages", "max_tokens"],
+        "properties": {
+          "max_tokens": { "type": "integer", "format": "int32" },
+          "messages": { "type": "array", "items": { "$ref": "#/components/schemas/MessageBody" } },
+          "metadata": {
+            "oneOf": [{ "type": "null" }, { "$ref": "#/components/schemas/MessageMetadata" }]
+          },
+          "model": { "type": "string" },
+          "stop_sequences": { "type": ["array", "null"], "items": { "type": "string" } },
+          "stream": { "type": ["boolean", "null"] },
+          "system": {
+            "oneOf": [{ "type": "null" }, { "$ref": "#/components/schemas/SystemMessageContent" }]
+          },
+          "temperature": { "type": ["number", "null"], "format": "float" },
+          "tool_choice": {
+            "oneOf": [{ "type": "null" }, { "$ref": "#/components/schemas/MessageToolChoice" }]
+          },
+          "tools": {
+            "type": ["array", "null"],
+            "items": { "$ref": "#/components/schemas/MessageTools" }
+          },
+          "top_k": { "type": ["integer", "null"], "format": "int32" },
+          "top_p": { "type": ["number", "null"], "format": "float" }
+        }
+      },
+      "MessageResponse": {
+        "type": "object",
+        "required": ["id", "type", "role", "content", "model", "usage"],
+        "properties": {
+          "content": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/MessageResponseContent" }
+          },
+          "id": { "type": "string" },
+          "model": { "type": "string" },
+          "role": { "type": "string" },
+          "stop_reason": { "type": ["string", "null"] },
+          "stop_sequence": { "type": ["string", "null"] },
+          "type": { "type": "string" },
+          "usage": { "$ref": "#/components/schemas/MessageUsage" }
+        }
+      },
+      "MessageResponseContent": {
+        "oneOf": [
+          {
+            "type": "object",
+            "required": ["text", "type"],
+            "properties": {
+              "text": { "type": "string" },
+              "type": { "type": "string", "enum": ["text"] }
+            }
+          },
+          {
+            "type": "object",
+            "required": ["id", "name", "input", "type"],
+            "properties": {
+              "id": { "type": "string" },
+              "input": { "type": "string" },
+              "name": { "type": "string" },
+              "type": { "type": "string", "enum": ["tool_use"] }
+            }
+          }
+        ]
+      },
+      "MessageToolChoice": {
+        "type": "object",
+        "required": ["type"],
+        "properties": { "name": { "type": ["string", "null"] }, "type": { "type": "string" } }
+      },
+      "MessageToolInputSchema": {
+        "type": "object",
+        "required": ["type"],
+        "properties": { "properties": { "type": ["string", "null"] }, "type": { "type": "string" } }
+      },
+      "MessageTools": {
+        "type": "object",
+        "required": ["name", "input_schema"],
+        "properties": {
+          "cache_control": { "type": ["string", "null"] },
+          "description": { "type": ["string", "null"] },
+          "input_schema": { "$ref": "#/components/schemas/MessageToolInputSchema" },
+          "name": { "type": "string" }
+        }
+      },
+      "MessageUsage": {
+        "type": "object",
+        "required": [
+          "input_tokens",
+          "cache_creation_input_tokens",
+          "cache_read_input_tokens",
+          "output_tokens"
+        ],
+        "properties": {
+          "cache_creation_input_tokens": { "type": "integer", "format": "int32" },
+          "cache_read_input_tokens": { "type": "integer", "format": "int32" },
+          "input_tokens": { "type": "integer", "format": "int32" },
+          "output_tokens": { "type": "integer", "format": "int32" }
+        }
+      },
+      "Model": {
+        "type": "object",
+        "description": "Same as `LanguageModel` but fully compliant with the OpenAI API.",
+        "required": ["id", "created", "object", "owned_by"],
+        "properties": {
+          "created": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Model creation time in Unix timestamp."
+          },
+          "id": { "type": "string", "description": "Model ID." },
+          "object": {
+            "type": "string",
+            "description": "The object type, which is always `model`."
+          },
+          "owned_by": { "type": "string", "description": "Owner of the model." }
+        }
+      },
+      "PromptUsageDetail": {
+        "type": "object",
+        "required": ["text_tokens", "audio_tokens", "image_tokens", "cached_tokens"],
+        "properties": {
+          "audio_tokens": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Audio prompt token used."
+          },
+          "cached_tokens": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Token cached by xAI from previous requests and reused for this request."
+          },
+          "image_tokens": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Image prompt token used."
+          },
+          "text_tokens": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Text prompt token used."
+          }
+        }
+      },
+      "ResponseFormat": {
+        "oneOf": [
+          {
+            "type": "object",
+            "required": ["type"],
+            "properties": { "type": { "type": "string", "enum": ["text"] } }
+          },
+          {
+            "type": "object",
+            "required": ["type"],
+            "properties": { "type": { "type": "string", "enum": ["json_object"] } }
+          },
+          {
+            "type": "object",
+            "required": ["json_schema", "type"],
+            "properties": {
+              "json_schema": {},
+              "type": { "type": "string", "enum": ["json_schema"] }
+            }
+          }
+        ]
+      },
+      "SampleChoice": {
+        "type": "object",
+        "required": ["index", "text", "finish_reason"],
+        "properties": {
+          "finish_reason": { "type": "string" },
+          "index": { "type": "integer", "format": "int32" },
+          "text": { "type": "string" }
+        }
+      },
+      "SampleContent": {
+        "oneOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" } }]
+      },
+      "SampleRequest": {
+        "type": "object",
+        "required": ["prompt", "model"],
+        "properties": {
+          "best_of": {
+            "type": ["integer", "null"],
+            "format": "int32",
+            "description": "Generates multiple completions internally and returns the top-scoring one. Not functional yet."
+          },
+          "echo": {
+            "type": ["boolean", "null"],
+            "description": "Option to include the original prompt in the response along with the generated completion."
+          },
+          "frequency_penalty": {
+            "type": ["number", "null"],
+            "format": "float",
+            "description": "Number between -2.0 and 2.0. Positive values penalize new tokens based on their existing frequency in the text so far, decreasing the model's likelihood to repeat the same line verbatim."
+          },
+          "logit_bias": {
+            "type": ["object", "null"],
+            "description": "Accepts a JSON object that maps tokens to an associated bias value from -100 to 100. You can use this tokenizer tool to convert text to token IDs. Mathematically, the bias is added to the logits generated by the model prior to sampling. The exact effect will vary per model, but values between -1 and 1 should decrease or increase likelihood of selection; values like -100 or 100 should result in a ban or exclusive selection of the relevant token.",
+            "additionalProperties": { "type": "number", "format": "float" },
+            "propertyNames": { "type": "integer", "format": "int32" }
+          },
+          "logprobs": {
+            "type": ["boolean", "null"],
+            "description": "Include the log probabilities on the `logprobs` most likely output tokens, as well the chosen tokens. For example, if `logprobs` is 5, the API will return a list of the 5 most likely tokens. The API will always return the logprob of the sampled token, so there may be up to `logprobs+1` elements in the response."
+          },
+          "max_tokens": {
+            "type": ["integer", "null"],
+            "format": "int32",
+            "description": "Limits the number of tokens that can be produced in the output. Ensure the sum of prompt tokens and `max_tokens` does not exceed the model's context limit."
+          },
+          "model": {
+            "type": "string",
+            "description": "Specifies the model to be used for the request."
+          },
+          "n": {
+            "type": ["integer", "null"],
+            "format": "int32",
+            "description": "Determines how many completion sequences to produce for each prompt. Be cautious with its use due to high token consumption; adjust `max_tokens` and stop sequences accordingly."
+          },
+          "presence_penalty": {
+            "type": ["number", "null"],
+            "format": "float",
+            "description": "Number between -2.0 and 2.0. Positive values penalize new tokens based on whether they appear in the text so far, increasing the model's likelihood to talk about new topics."
+          },
+          "prompt": {
+            "$ref": "#/components/schemas/SampleContent",
+            "description": "Input for generating completions, which can be a string, list of strings, token list, or list of token lists. `<|endoftext|>` is used as a document separator, implying a new context start if omitted."
+          },
+          "seed": {
+            "type": ["integer", "null"],
+            "format": "int32",
+            "description": "If specified, our system will make a best effort to sample deterministically, such that repeated requests with the same seed and parameters should return the same result. Determinism is not guaranteed, and you should refer to the system_fingerprint response parameter to monitor changes in the backend."
+          },
+          "stop": {
+            "type": ["array", "null"],
+            "items": { "type": "string" },
+            "description": "Up to 4 sequences where the API will stop generating further tokens. The returned text will not contain the stop sequence."
+          },
+          "stream": {
+            "type": ["boolean", "null"],
+            "description": "Whether to stream back partial progress. If set, tokens will be sent as data-only server-sent events as they become available, with the stream terminated by a `data: [DONE]` message."
+          },
+          "stream_options": {
+            "oneOf": [
+              { "type": "null" },
+              {
+                "$ref": "#/components/schemas/StreamOptions",
+                "description": "Options for streaming response. Only set this when you set `stream: true`."
+              }
+            ]
+          },
+          "suffix": {
+            "type": ["string", "null"],
+            "description": "Optional string to append after the generated text."
+          },
+          "temperature": {
+            "type": ["number", "null"],
+            "format": "float",
+            "description": "What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. We generally recommend altering this or `top_p` but not both."
+          },
+          "top_p": {
+            "type": ["number", "null"],
+            "format": "float",
+            "description": "An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with `top_p` probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered. We generally recommend altering this or temperature but not both."
+          },
+          "user": {
+            "type": ["string", "null"],
+            "description": "A unique identifier representing your end-user, which can help xAI to monitor and detect abuse."
+          }
+        }
+      },
+      "SampleResponse": {
+        "type": "object",
+        "required": ["id", "object", "created", "model", "choices"],
+        "properties": {
+          "choices": { "type": "array", "items": { "$ref": "#/components/schemas/SampleChoice" } },
+          "created": { "type": "integer", "format": "int64" },
+          "id": { "type": "string" },
+          "model": { "type": "string" },
+          "object": { "type": "string" },
+          "system_fingerprint": { "type": ["string", "null"] },
+          "usage": { "oneOf": [{ "type": "null" }, { "$ref": "#/components/schemas/Usage" }] }
+        }
+      },
+      "StartDeferredChatResponse": {
+        "type": "object",
+        "required": ["request_id"],
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "description": "A unique request ID for the chat response."
+          }
+        }
+      },
+      "StreamOptions": {
+        "type": "object",
+        "required": ["include_usage"],
+        "properties": {
+          "include_usage": {
+            "type": "boolean",
+            "description": "Set an additional chunk to be streamed before the `data: [DONE]` message. The other chunks will return `null` in `usage` field."
+          }
+        }
+      },
+      "SystemMessageContent": {
+        "oneOf": [
+          { "type": "string" },
+          { "type": "array", "items": { "$ref": "#/components/schemas/SystemMessagePart" } }
+        ]
+      },
+      "SystemMessagePart": {
+        "type": "object",
+        "required": ["type", "text"],
+        "properties": {
+          "cache_control": { "type": ["string", "null"] },
+          "text": { "type": "string" },
+          "type": { "type": "string" }
+        }
+      },
+      "TokenLogProb": {
+        "type": "object",
+        "required": ["token", "logprob", "top_logprobs"],
+        "properties": {
+          "bytes": {
+            "type": ["array", "null"],
+            "items": { "type": "integer", "format": "int32", "minimum": 0 }
+          },
+          "logprob": { "type": "number", "format": "float" },
+          "token": { "type": "string" },
+          "top_logprobs": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/TopLogProb" }
+          }
+        }
+      },
+      "TokenizeRequest": {
+        "type": "object",
+        "required": ["text", "model"],
+        "properties": {
+          "model": { "type": "string", "description": "The model to tokenize with." },
+          "text": { "type": "string", "description": "The text content to be tokenized." }
+        }
+      },
+      "TokenizeResponse": {
+        "type": "object",
+        "required": ["token_ids"],
+        "properties": {
+          "token_ids": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/TokenizeResponseToken" },
+            "description": "A list of tokens."
+          }
+        }
+      },
+      "TokenizeResponseToken": {
+        "type": "object",
+        "required": ["token_id", "string_token", "token_bytes"],
+        "properties": {
+          "string_token": { "type": "string", "description": "The string of the token." },
+          "token_bytes": {
+            "type": "array",
+            "items": { "type": "integer", "format": "int32", "minimum": 0 },
+            "description": "The bytes that constituted the token."
+          },
+          "token_id": {
+            "type": "integer",
+            "format": "int32",
+            "description": "The integer representation of the token for the model.",
+            "minimum": 0
+          }
+        }
+      },
+      "Tool": {
+        "type": "object",
+        "required": ["type", "function"],
+        "properties": {
+          "function": { "$ref": "#/components/schemas/FunctionDefinition" },
+          "type": {
+            "type": "string",
+            "description": "The type of tool the model can use. For now, the only supported type is \"function\"."
+          }
+        }
+      },
+      "ToolCall": {
+        "type": "object",
+        "required": ["id", "function"],
+        "properties": {
+          "function": {
+            "$ref": "#/components/schemas/Function",
+            "description": "Function to call for the tool call."
+          },
+          "id": {
+            "type": "string",
+            "description": "A unique ID of the tool call generated by xAI. After performing tool call's function, user provides this ID with tool call's result in the subsequent request to xAI. xAI can then match the tool call result sent with tool call request."
+          },
+          "index": { "type": ["integer", "null"], "format": "int32" },
+          "type": { "type": ["string", "null"] }
+        }
+      },
+      "ToolChoice": {
+        "oneOf": [
+          { "type": "string" },
+          {
+            "type": "object",
+            "required": ["type"],
+            "properties": {
+              "function": {
+                "oneOf": [{ "type": "null" }, { "$ref": "#/components/schemas/FunctionChoice" }]
+              },
+              "type": { "type": "string" }
+            }
+          }
+        ]
+      },
+      "TopLogProb": {
+        "type": "object",
+        "required": ["token", "logprob"],
+        "properties": {
+          "bytes": {
+            "type": ["array", "null"],
+            "items": { "type": "integer", "format": "int32", "minimum": 0 }
+          },
+          "logprob": { "type": "number", "format": "float" },
+          "token": { "type": "string" }
+        }
+      },
+      "Usage": {
+        "type": "object",
+        "required": ["prompt_tokens", "completion_tokens", "total_tokens"],
+        "properties": {
+          "completion_tokens": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Total completion token used."
+          },
+          "prompt_tokens": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Total prompt token used."
+          },
+          "prompt_tokens_details": {
+            "oneOf": [
+              { "type": "null" },
+              {
+                "$ref": "#/components/schemas/PromptUsageDetail",
+                "description": "Breakdown of prompt token usage of different types."
+              }
+            ]
+          },
+          "total_tokens": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Total token used, the sum of prompt token and completion token amount."
+          }
+        }
+      }
+    },
+    "securitySchemes": { "bearerAuth": { "type": "http", "scheme": "bearer" } }
+  }
+}
