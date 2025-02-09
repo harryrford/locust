@@ -1,8 +1,8 @@
 # Locust
 
-Objective: Grok powered DeepResearch.
+Objective: DeepResearch.
 
-Reasoning:
+Operations:
 1. Initial Decomposition
 ```
 "Break down the following question into subquestions: [Main Question]. Please list each subquestion clearly."
