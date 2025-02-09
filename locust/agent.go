@@ -2,53 +2,111 @@ package locust
 
 import (
 	"fmt"
-	"strings"
+
+	"github.com/goccy/go-json"
+	"github.com/harryrford/locust/chat"
 )
 
-var SystemMessage = `You are a research agent designed to break down complex questions, determine research scope, gather data, synthesize answers, and provide a final conclusion. Your task involves these steps: 1. Break down questions into subquestions. 2. Determine if further breakdown is necessary. 3. Define research scope. 4. Identify required data instances. 5. Synthesize data. 6. Produce a final answer.`
-
-func NewLocustQuery(apiKey string, queryQuestion string) string {
-	resp, err := ChatCompletions(apiKey, &Completions{
-		Messages: []Message{
+func DeepResearch(client *chat.Client, query string) (string, error) {
+	resp, err := client.ChatCompletions(&chat.Completions{
+		Messages: []*chat.Message{
 			{
 				Role:    "system",
-				Content: SystemMessage,
+				Content: ResearchSystemMessage,
 			},
 			{
 				Role:    "user",
-				Content: fmt.Sprintf("Break down the following question into subquestions: %s. Please list each subquestion clearly.", queryQuestion),
+				Content: fmt.Sprintf("Break down the following question into subquestions: %s. Please list each subquestion clearly.", query),
 			},
 		},
-		Stream:      false,
-		Temperature: 0,
-		Model:       "grok-2-latest",
-		ResponseFormat: []byte(`{
-			"type": "json_schema",
-			"json_schema": {
-				"name": "subquestions_response",
-				"schema": {
-					"type": "object",
-					"properties": {
-						"responses": {
-							"type": "array",
-							"items": {"type": "string"}
-						}
-					},
-					"required": ["subquestions"],
-					"additionalProperties": false
-				},
-				"strict": true
-			}
-		}`),
+		Model:          "grok-2-latest",
+		ResponseFormat: []byte(SubquestionsFormat),
 	})
 	if err != nil {
-		return err.Error()
+		return "", err
+	}
+	if len(resp.Choices) != 1 {
+		return "", fmt.Errorf("server error")
 	}
 
-	var subQuestions strings.Builder
-	for _, v := range resp.Choices {
-		subQuestions.WriteString(v.Message.Content)
+	rootNode := &ResearchNode{
+		Depth:        0,
+		Question:     query,
+		Subquestions: []*ResearchNode{},
 	}
 
-	return subQuestions.String()
+	var subquestions Subquestions
+	if err := json.Unmarshal([]byte(resp.Choices[0].Message.Content), &subquestions); err != nil {
+		return "", err
+	}
+
+	breakdown, err := researchTree(client, rootNode, subquestions.Subquestions)
+	if err != nil {
+		return "", err
+	}
+
+	jsonResp, err := json.Marshal(breakdown)
+	if err != nil {
+		return "", err
+	}
+
+	return string(jsonResp), nil
+}
+
+func researchTree(client *chat.Client, node *ResearchNode, questions []string) (*ResearchNode, error) {
+	if node.Depth > 3 {
+		return node, nil
+	}
+	for _, subquestion := range questions {
+		fmt.Println(subquestion)
+		response, err := client.ChatCompletions(&chat.Completions{
+			Messages: []*chat.Message{
+				{
+					Role:    "system",
+					Content: ResearchSystemMessage,
+				},
+				{
+					Role:    "user",
+					Content: fmt.Sprintf("For this subquestion, %s, is further breakdown necessary? If yes, please provide the additional subquestions.", subquestion),
+				},
+			},
+			Model:          "grok-2-latest",
+			ResponseFormat: []byte(FurtherBreakdownFormat),
+		})
+		if err != nil {
+			return nil, err
+		}
+		if len(response.Choices) != 1 {
+			continue
+		}
+
+		var breakdown FurtherBreakdown
+		if err := json.Unmarshal([]byte(response.Choices[0].Message.Content), &breakdown); err != nil {
+			return nil, err
+		}
+
+		if breakdown.NeedsBreakdown {
+			furtherBreakdownNode := &ResearchNode{
+				Depth:        node.Depth + 1,
+				Question:     subquestion,
+				Subquestions: []*ResearchNode{},
+			}
+
+			subNode, err := researchTree(client, furtherBreakdownNode, breakdown.AdditionalSubquestions)
+			if err != nil {
+				return nil, err
+			}
+
+			node.Subquestions = append(node.Subquestions, subNode)
+		} else {
+
+			node.Subquestions = append(node.Subquestions, &ResearchNode{
+				Depth:        node.Depth + 1,
+				Question:     subquestion,
+				Subquestions: nil,
+			})
+		}
+	}
+
+	return node, nil
 }

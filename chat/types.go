@@ -1,6 +1,6 @@
-package locust
+package chat
 
-import "github.com/goccy/go-json"
+import "encoding/json"
 
 type Message struct {
 	Role    string `json:"role"`
@@ -11,15 +11,15 @@ type Completions struct {
 	Model          string          `json:"model"`
 	Stream         bool            `json:"stream"`
 	Temperature    int             `json:"temperature"`
-	Messages       []Message       `json:"messages"`
+	Messages       []*Message      `json:"messages"`
 	ResponseFormat json.RawMessage `json:"response_format"`
-}
-
-type CompletionResponse struct {
-	Choices []Choice `json:"choices"`
 }
 
 type Choice struct {
 	Index   int     `json:"index"`
 	Message Message `json:"message"`
+}
+
+type CompletionResponse struct {
+	Choices []*Choice `json:"choices"`
 }
