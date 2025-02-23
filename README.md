@@ -45,42 +45,52 @@ You are a research agent designed to break down complex questions, determine res
 ## Response Format
 ```json
 {
-  "type": "json_schema",
-  "json_schema": {
-    "name": "decomposition_response",
-    "schema": {
-      "type": "object",
-      "properties": {
-        "subquestions": {
-          "type": "array",
-          "items": {
+    "type": "json_schema",
+    "json_schema": {
+        "name": "decomposition_response",
+        "schema": {
             "type": "object",
             "properties": {
-              "text": {
-                "type": "string",
-                "description": "The subquestion text."
-              },
-              "priority": {
-                "type": "integer",
-                "description": "Priority order (1 being highest)."
-              },
-              "type": {
-                "type": "string",
-                "enum": ["factual", "analytical", "expert opinion"],
-                "description": "Type of information required."
-              }
+                "subquestions": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "text": {
+                                "type": "string",
+                                "description": "The subquestion text."
+                            },
+                            "priority": {
+                                "type": "integer",
+                                "description": "Priority order (1 being highest)."
+                            },
+                            "type": {
+                                "type": "string",
+                                "enum": [
+                                    "factual",
+                                    "analytical",
+                                    "expert opinion"
+                                ],
+                                "description": "Type of information required."
+                            }
+                        },
+                        "required": [
+                            "text",
+                            "priority",
+                            "type"
+                        ],
+                        "additionalProperties": false
+                    },
+                    "description": "List of subquestions."
+                }
             },
-            "required": ["text", "priority", "type"],
+            "required": [
+                "subquestions"
+            ],
             "additionalProperties": false
-          },
-          "description": "List of subquestions."
-        }
-      },
-      "required": ["subquestions"],
-      "additionalProperties": false
-    },
-    "strict": true
-  }
+        },
+        "strict": true
+    }
 }
 ```
 ## Step 2. Criteria
@@ -90,33 +100,61 @@ You are a research agent designed to break down complex questions, determine res
 ## Response Format
 ```json
 {
-  "type": "json_schema",
-  "json_schema": {
-    "name": "further_breakdown_response",
-    "schema": {
-      "type": "object",
-      "properties": {
-        "subquestion": {
-          "type": "string",
-          "description": "The original subquestion."
+    "type": "json_schema",
+    "json_schema": {
+        "name": "further_breakdown_response",
+        "schema": {
+            "type": "object",
+            "properties": {
+                "subquestion": {
+                    "type": "string",
+                    "description": "The original subquestion."
+                },
+                "further_breakdown_needed": {
+                    "type": "boolean",
+                    "description": "Indicates if further breakdown is necessary."
+                },
+                "additional_subquestions": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "text": {
+                                "type": "string",
+                                "description": "The subquestion text."
+                            },
+                            "priority": {
+                                "type": "integer",
+                                "description": "Priority order (1 being highest)."
+                            },
+                            "type": {
+                                "type": "string",
+                                "enum": [
+                                    "factual",
+                                    "analytical",
+                                    "expert opinion"
+                                ],
+                                "description": "Type of information required."
+                            }
+                        },
+                        "required": [
+                            "text",
+                            "priority",
+                            "type"
+                        ],
+                        "additionalProperties": false
+                    },
+                    "description": "List of additional subquestions if breakdown is needed."
+                }
+            },
+            "required": [
+                "subquestion",
+                "further_breakdown_needed"
+            ],
+            "additionalProperties": false
         },
-        "further_breakdown_needed": {
-          "type": "boolean",
-          "description": "Indicates if further breakdown is necessary."
-        },
-        "additional_subquestions": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "description": "List of additional subquestions if breakdown is needed."
-        }
-      },
-      "required": ["subquestion", "further_breakdown_needed"],
-      "additionalProperties": false
-    },
-    "strict": true
-  }
+        "strict": true
+    }
 }
 ```
 ## Step 3.  Scope
@@ -242,28 +280,31 @@ You are a research agent designed to break down complex questions, determine res
 ## Response Format
 ```json
 {
-  "type": "json_schema",
-  "json_schema": {
-    "name": "final_answer_response",
-    "schema": {
-      "type": "object",
-      "properties": {
-        "final_answer": {
-          "type": "string",
-          "description": "The comprehensive answer to the main question."
+    "type": "json_schema",
+    "json_schema": {
+        "name": "final_answer_response",
+        "schema": {
+            "type": "object",
+            "properties": {
+                "final_answer": {
+                    "type": "string",
+                    "description": "The comprehensive answer to the main question."
+                },
+                "references": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "List of key sources used."
+                }
+            },
+            "required": [
+                "final_answer",
+                "references"
+            ],
+            "additionalProperties": false
         },
-        "references": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "description": "List of key sources used."
-        }
-      },
-      "required": ["final_answer", "references"],
-      "additionalProperties": false
-    },
-    "strict": true
-  }
+        "strict": true
+    }
 }
 ```
