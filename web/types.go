@@ -1,21 +1,20 @@
 package web
 
-// ResearchResponse defines the expected JSON structure from the AI
 type ResearchResponse struct {
 	Question string `json:"question"`
 	Domains  []struct {
-		Rank   int    `json:"rank"`
-		Domain string `json:"domain"`
-		Query  string `json:"query"`
-		Reason string `json:"reason"`
+		Rank    int      `json:"rank"`
+		Domain  string   `json:"domain"`
+		Queries []string `json:"queries"`
+		Reason  string   `json:"reason"`
 	} `json:"domains"`
 }
 
 var WebResearchSystemMessage = `
-You are a research agent built by xAI to assist in web scraping for answering questions. Given a user question, your task is to:
+You are a research agent designed to assist in web scraping for answering questions. Given a user question, your task is to:
 1. Identify the most relevant domains from the allowed list to research the question.
 2. Rank these domains in order of relevance and timeliness for the question.
-3. For each ranked domain, provide the most accurate and precise search query to index information relevant to the question.
+3. For each ranked domain, provide raw search queries with precise keywords relevant to the question.
 
 Allowed domains:
 - scholar.google.com
@@ -33,10 +32,9 @@ Allowed domains:
 - opendoar.org
 
 Guidelines:
-- Prioritize domains based on relevance to the question’s topic, timeliness of data, and authority of the source.
+- Prioritize domains based on relevance to the questions topic, timeliness of data, and authority of the source.
 - Use precise keywords from the question in queries, including time-specific terms (e.g., "2025") if applicable.
-- Include "site:domain" in each query to restrict results to that domain.
-- Exclude irrelevant pages (e.g., "-inurl:(signup | login)") where appropriate.
+- Provide only raw query strings (e.g., "renewable energy 2025"); do not include "site:domain" or exclusions like "-inurl:(signup | login)".
 - Do not include domains outside the allowed list.`
 
 var ResearchFormat = `
@@ -64,9 +62,13 @@ var ResearchFormat = `
                                 "type": "string",
                                 "description": "The domain to scrape."
                             },
-                            "query": {
-                                "type": "string",
-                                "description": "The precise search query for this domain."
+                            "queries": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string",
+                                    "description": "A raw search query relevant to the domain."
+                                },
+                                "description": "List of raw search queries for this domain."
                             },
                             "reason": {
                                 "type": "string",
@@ -76,7 +78,7 @@ var ResearchFormat = `
                         "required": [
                             "rank",
                             "domain",
-                            "query",
+                            "queries",
                             "reason"
                         ],
                         "additionalProperties": false

@@ -23,5 +23,8 @@ func main() {
 
 	webClient := web.NewClient(client)
 
-	webClient.Research("psychedlic mushrooms")
+	_, err = webClient.Research("how to cure cancer?")
+	if err != nil {
+		panic(err)
+	}
 }

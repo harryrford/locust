@@ -1,0 +1,49 @@
+{
+    "question": "how to cure cancer?",
+    "domains": [
+        {
+            "rank": 1,
+            "domain": "pubmed.ncbi.nlm.nih.gov",
+            "queries": [
+                "cancer cure",
+                "cancer treatment",
+                "cancer therapy",
+                "oncology advancements"
+            ],
+            "reason": "PubMed is the most relevant source for medical and health-related research, providing up-to-date and authoritative information on cancer treatments and therapies."
+        },
+        {
+            "rank": 2,
+            "domain": "scholar.google.com",
+            "queries": [
+                "cancer cure",
+                "cancer treatment",
+                "cancer therapy",
+                "oncology research"
+            ],
+            "reason": "Google Scholar provides a broad academic search that includes recent research on cancer, though it may not be as specialized as PubMed."
+        },
+        {
+            "rank": 3,
+            "domain": "arxiv.org",
+            "queries": [
+                "cancer cure",
+                "cancer treatment",
+                "cancer therapy",
+                "oncology"
+            ],
+            "reason": "ArXiv might contain preprints on cancer research, though it's less focused on medical research compared to PubMed."
+        },
+        {
+            "rank": 4,
+            "domain": "semanticscholar.org",
+            "queries": [
+                "cancer cure",
+                "cancer treatment",
+                "cancer therapy",
+                "oncology"
+            ],
+            "reason": "Semantic Scholar offers a comprehensive search of academic literature, but it's less specialized in medical fields compared to PubMed."
+        }
+    ]
+}
